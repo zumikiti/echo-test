@@ -7,6 +7,6 @@ services:
       target: build
     volumes:
       - ./:/go/app
-    command: go run main.go
+    command: go run server.go
     ports:
       - 1323:1323
