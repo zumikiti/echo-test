@@ -10,3 +10,10 @@ services:
     command: go run server.go
     ports:
       - 1323:1323
+    networks:
+      - webdev
+
+networks:
+  webdev:
+    external: true
+    name: webdev
