@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gocraft/dbr"
 	"github.com/labstack/echo/v4"
@@ -15,10 +16,12 @@ type (
 	}
 
 	User struct {
-		Id       int    `db:id`
-		Name     string `db:name`
-		Email    string `db:email`
-		Password string `db:password`
+		Id        int    `db:id`
+		Name      string `db:name`
+		Email     string `db:email`
+		Password  string `db:password`
+		CreatedAt time.Time
+		UpdatedAt time.Time
 	}
 
 	response struct {
@@ -40,7 +43,7 @@ func main() {
 	e.GET("/users", getUsers)
 	e.POST("/users", saveUser)
 	e.GET("/users/:id", getUser)
-	// e.PUT("/users/:id", updateUser)
+	e.PUT("/users/:id", updateUser)
 	// e.DELETE("/users/:id", deleteUser)
 
 	e.Logger.Fatal(e.Start(":1323"))
@@ -80,8 +83,24 @@ func saveUser(c echo.Context) error {
 
 	_, err := sess.InsertInto(tableName).Columns("name", "email", "password").Values(u.Name, u.Email, u.Password).Exec()
 	if err != nil {
-		return c.String(http.StatusOK, err.Error())
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, u)
+}
+
+func updateUser(c echo.Context) error {
+	id := c.Param("id")
+
+	attrMap := map[string]interface{}{
+		"name":       c.FormValue("name"),
+		"email":      c.FormValue("email"),
+		"updated_at": time.Now(),
+	}
+	_, err := sess.Update(tableName).SetMap(attrMap).Where("id = ?", id).Exec()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.NoContent(http.StatusOK)
 }
