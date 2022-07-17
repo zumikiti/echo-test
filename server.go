@@ -86,7 +86,7 @@ func saveUser(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, u)
+	return c.JSON(http.StatusCreated, u)
 }
 
 func updateUser(c echo.Context) error {
