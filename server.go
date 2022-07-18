@@ -44,7 +44,7 @@ func main() {
 	e.POST("/users", saveUser)
 	e.GET("/users/:id", getUser)
 	e.PUT("/users/:id", updateUser)
-	// e.DELETE("/users/:id", deleteUser)
+	e.DELETE("/users/:id", deleteUser)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
@@ -98,6 +98,17 @@ func updateUser(c echo.Context) error {
 		"updated_at": time.Now(),
 	}
 	_, err := sess.Update(tableName).SetMap(attrMap).Where("id = ?", id).Exec()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteUser(c echo.Context) error {
+	id := c.Param("id")
+
+	_, err := sess.DeleteFrom(tableName).Where("id = ?", id).Exec()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
