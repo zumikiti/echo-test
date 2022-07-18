@@ -41,7 +41,7 @@ func main() {
 
 	// routes
 	e.GET("/users", getUsers)
-	e.POST("/users", saveUser)
+	e.POST("/users", storeUser)
 	e.GET("/users/:id", getUser)
 	e.PUT("/users/:id", updateUser)
 	e.DELETE("/users/:id", deleteUser)
@@ -69,7 +69,7 @@ func getUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, u)
 }
 
-func saveUser(c echo.Context) error {
+func storeUser(c echo.Context) error {
 	u := new(User)
 
 	if err := c.Bind(u); err != nil {
