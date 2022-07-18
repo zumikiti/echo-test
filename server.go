@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"net/http"
 	"time"
 
@@ -76,17 +78,30 @@ func storeUser(c echo.Context) error {
 		return err
 	}
 
-	// Get name and email
+	p := GetMd5("password")
+
 	u.Name = c.FormValue("name")
 	u.Email = c.FormValue("email")
-	u.Password = "password"
+	u.Password = p
+	u.CreatedAt = time.Now()
 
-	_, err := sess.InsertInto(tableName).Columns("name", "email", "password").Values(u.Name, u.Email, u.Password).Exec()
+	_, err := sess.InsertInto(tableName).
+		Columns("name", "email", "password", "created_at").
+		Values(u.Name, u.Email, u.Password, u.CreatedAt).
+		Exec()
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusCreated, u)
+}
+
+// GetMd5 - get encoded password with md5
+func GetMd5(password string) string {
+	hash := md5.New()
+	defer hash.Reset()
+	hash.Write([]byte(password))
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 func updateUser(c echo.Context) error {
