@@ -1,4 +1,4 @@
-module echo-test.com/m/v2
+module github.com/zumikiti/echo-test
 
 go 1.18
 
