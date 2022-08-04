@@ -9,26 +9,8 @@ import (
 	"github.com/gocraft/dbr"
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
-)
 
-type (
-	UserJson struct {
-		Name  string `json:"name"`
-		Email string `json:"email`
-	}
-
-	User struct {
-		Id        int    `db:id`
-		Name      string `db:name`
-		Email     string `db:email`
-		Password  string `db:password`
-		CreatedAt time.Time
-		UpdatedAt time.Time
-	}
-
-	response struct {
-		Users []User
-	}
+	"github.com/zumikiti/echo-test/models/user"
 )
 
 var (
@@ -39,10 +21,10 @@ var (
 )
 
 func GetUsers(c echo.Context) error {
-	var u []User
+	var u []user.User
 	sess.Select("*").From(tableName).Load(&u)
 
-	res := new(response)
+	res := new(user.Response)
 	res.Users = u
 
 	return c.JSON(http.StatusCreated, res)
@@ -52,23 +34,29 @@ func GetUser(c echo.Context) error {
 	// User ID from path `users/:id`
 	id := c.Param("id")
 
-	var u User
+	var u user.User
 	sess.Select("*").From(tableName).Where("id = ?", id).Load(&u)
 
 	return c.JSON(http.StatusOK, u)
 }
 
 func StoreUser(c echo.Context) error {
-	u := new(User)
+	u := new(user.User)
 
 	if err := c.Bind(u); err != nil {
 		return err
 	}
 
+	// Bind the input data to UserRequest
+	UserRequest := new(user.Request)
+	if err := c.Bind(UserRequest); err != nil {
+		return err
+	}
+
 	p := GetMd5("password")
 
-	u.Name = c.FormValue("name")
-	u.Email = c.FormValue("email")
+	u.Name = UserRequest.Name
+	u.Email = UserRequest.Email
 	u.Password = p
 	u.CreatedAt = time.Now()
 
@@ -94,9 +82,15 @@ func GetMd5(password string) string {
 func UpdateUser(c echo.Context) error {
 	id := c.Param("id")
 
+	// Bind the input data to UserRequest
+	UserRequest := new(user.Request)
+	if err := c.Bind(UserRequest); err != nil {
+		return err
+	}
+
 	attrMap := map[string]interface{}{
-		"name":       c.FormValue("name"),
-		"email":      c.FormValue("email"),
+		"name":       UserRequest.Name,
+		"email":      UserRequest.Email,
 		"updated_at": time.Now(),
 	}
 	_, err := sess.Update(tableName).SetMap(attrMap).Where("id = ?", id).Exec()
